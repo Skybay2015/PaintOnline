@@ -13,7 +13,6 @@ const ToolBar = observer(() => {
    const changeColor = (e) => {
       toolState.setFillColor(e.target.value);
       toolState.setStrokeColor(e.target.value);
-      toolState.setColor(e.target.value);
    };
 
    return (
@@ -60,16 +59,28 @@ const ToolBar = observer(() => {
          />
          <button
             className='toolbar__btn line'
-            onClick={() => toolState.setTool(new Line(canvasState.canvas))}
+            onClick={() =>
+               toolState.setTool(
+                  new Line(
+                     canvasState.canvas,
+                     appState.socket,
+                     appState.sessionId,
+                  ),
+               )
+            }
          />
          <input onChange={changeColor} type='color' />
          <button
             className='toolbar__btn undo'
-            onClick={() => canvasState.undo()}
+            onClick={() =>
+               canvasState.undo(appState.socket, appState.sessionId)
+            }
          />
          <button
             className='toolbar__btn redo'
-            onClick={() => canvasState.redo()}
+            onClick={() =>
+               canvasState.redo(appState.socket, appState.sessionId)
+            }
          />
          <button className='toolbar__btn save' />
       </div>

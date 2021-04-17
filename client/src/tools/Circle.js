@@ -1,8 +1,8 @@
 import Tool from './Tool';
 
 export default class Circle extends Tool {
-   constructor(canvas) {
-      super(canvas);
+   constructor(canvas, socket, id) {
+      super(canvas, socket, id);
       this.listen();
    }
 
@@ -26,6 +26,8 @@ export default class Circle extends Tool {
                width: this.width,
                height: this.height,
                color: this.ctx.fillStyle,
+               strokeColor: this.ctx.strokeStyle,
+               lineWidth: this.ctx.lineWidth,
             },
          }),
       );
@@ -68,8 +70,10 @@ export default class Circle extends Tool {
       this.ctx.stroke();
    }
 
-   static staticDraw(ctx, x, y, r, color) {
+   static staticDraw(ctx, x, y, r, color, strokeColor, lineWidth) {
       ctx.fillStyle = color;
+      ctx.lineWidth = lineWidth;
+      ctx.strokeStyle = strokeColor;
       ctx.beginPath();
       ctx.arc(x, y, r, 2 * Math.PI, false);
       ctx.fill();

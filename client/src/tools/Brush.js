@@ -4,7 +4,6 @@ export default class Brush extends Tool {
    constructor(canvas, socket, id) {
       super(canvas, socket, id);
       this.listen();
-      console.log(this.socket, ' <- socket');
    }
 
    listen() {
@@ -37,7 +36,6 @@ export default class Brush extends Tool {
 
    mouseMoveHandler(e) {
       if (this.mouseDown) {
-         console.log('ctx', this.ctx.fillStyle);
          this.socket.send(
             JSON.stringify({
                method: 'draw',
@@ -47,17 +45,19 @@ export default class Brush extends Tool {
                   x: e.pageX - e.target.offsetLeft,
                   y: e.pageY - e.target.offsetTop,
                   color: this.ctx.fillStyle,
+                  lineWidth: this.ctx.lineWidth,
                },
             }),
          );
       }
    }
 
-   static draw(ctx, x, y, color) {
-      ctx.fillStyle = color;
-
-      ctx.lineTo(x, y);
+   static draw(ctx, x, y, color, lineWidth) {
+      console.log('draw', color);
       ctx.strokeStyle = color;
+      ctx.lineWidth = lineWidth;
+      ctx.lineTo(x, y);
+
       ctx.stroke();
    }
 }

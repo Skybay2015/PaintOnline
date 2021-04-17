@@ -1,7 +1,6 @@
 import Tool from './Tool';
 
 export default class Rect extends Tool {
-   mainColor = '';
    constructor(canvas, socket, id) {
       super(canvas, socket, id);
       this.listen();
@@ -26,6 +25,8 @@ export default class Rect extends Tool {
                width: this.width,
                height: this.height,
                color: this.ctx.fillStyle,
+               strokeColor: this.ctx.strokeStyle,
+               lineWidth: this.ctx.lineWidth,
             },
          }),
       );
@@ -33,7 +34,6 @@ export default class Rect extends Tool {
 
    mouseDownHandler(e) {
       this.mouseDown = true;
-      this.mainColor = this.getColor;
       this.ctx.beginPath();
 
       this.startX = e.pageX - e.target.offsetLeft;
@@ -67,8 +67,10 @@ export default class Rect extends Tool {
       this.ctx.stroke();
    }
 
-   static staticDraw(ctx, x, y, w, h, color) {
+   static staticDraw(ctx, x, y, w, h, color, strokeColor, lineWidth) {
       ctx.fillStyle = color;
+      ctx.strokeStyle = strokeColor;
+      ctx.lineWidth = lineWidth;
       ctx.beginPath();
       ctx.rect(x, y, w, h);
       ctx.fill();

@@ -9,6 +9,7 @@ import { useParams } from 'react-router-dom';
 import appState from '../../store/appState';
 import Rect from '../../tools/Rect';
 import Circle from '../../tools/Circle';
+import Line from '../../tools/Line';
 
 const Canvas = observer(() => {
    const { id } = useParams();
@@ -38,9 +39,13 @@ const Canvas = observer(() => {
          };
          socket.onmessage = (event) => {
             let message = JSON.parse(event.data);
+            console.log(message.method);
             switch (message.method) {
                case 'connection':
                   console.log(`user ${message.username}`);
+                  break;
+               case 'picture':
+                  pictureHandler(message);
                   break;
                case 'draw':
                   drawHandler(message);
@@ -50,13 +55,42 @@ const Canvas = observer(() => {
       }
    }, [canvasState.username]);
 
+   const returnMainSettings = (mainColor, strokeColor, lineWidth) => {
+      toolState.setFillColor(mainColor);
+      toolState.setStrokeColor(strokeColor);
+      toolState.setLineWidth(lineWidth);
+   };
+
+   const pictureHandler = (msg) => {
+      const {
+         data: { url: dataUrl },
+      } = msg;
+      const ctx = canvasRef.current.getContext('2d');
+
+      let img = new Image();
+      img.src = dataUrl;
+      img.onload = () => {
+         ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+         ctx.drawImage(
+            img,
+            0,
+            0,
+            canvasRef.current.width,
+            canvasRef.current.height,
+         );
+      };
+   };
+
    const drawHandler = (msg) => {
       const figure = msg.figure;
       const ctx = canvasRef.current.getContext('2d');
       const mainColor = toolState.mainColor;
+      const strokeColor = toolState.strokeColor;
+      const lineWidth = toolState.lineWidth;
+
       switch (figure.type) {
          case 'brush':
-            Brush.draw(ctx, figure.x, figure.y, figure.color);
+            Brush.draw(ctx, figure.x, figure.y, figure.color, figure.lineWidth);
             break;
 
          case 'rect':
@@ -67,8 +101,12 @@ const Canvas = observer(() => {
                figure.width,
                figure.height,
                figure.color,
+               figure.strokeColor,
+               figure.lineWidth,
             );
-            ctx.fillStyle = mainColor;
+            returnMainSettings(mainColor, strokeColor, lineWidth);
+            ctx.beginPath();
+
             break;
 
          case 'circle':
@@ -77,15 +115,31 @@ const Canvas = observer(() => {
                figure.x,
                figure.y,
                figure.r,
-               figure.width,
-               figure.height,
                figure.color,
+               figure.strokeColor,
+               figure.lineWidth,
             );
-            ctx.fillStyle = mainColor;
+            returnMainSettings(mainColor, strokeColor, lineWidth);
+            ctx.beginPath();
+            break;
+
+         case 'line':
+            Line.staticDraw(
+               ctx,
+               figure.currentX,
+               figure.currentY,
+               figure.x,
+               figure.y,
+               figure.color,
+               figure.lineWidth,
+            );
+            returnMainSettings(mainColor, strokeColor, lineWidth);
+            ctx.beginPath();
+            break;
          case 'finish':
             ctx.beginPath();
-            ctx.fillStyle = mainColor;
-            ctx.strokeStyle = mainColor;
+            returnMainSettings(mainColor, strokeColor, lineWidth);
+            break;
       }
    };
 

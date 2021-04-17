@@ -21,7 +21,6 @@ const broadcastConnection = (ws, msg) => {
 };
 
 app.ws('/', (ws, req) => {
-   console.log('connected');
    ws.send('You have connected');
    ws.on('message', (msg) => {
       msg = JSON.parse(msg);
@@ -29,8 +28,12 @@ app.ws('/', (ws, req) => {
          case 'connection':
             connectionHandler(ws, msg);
             break;
+         case 'picture':
+            console.log('picture', msg);
+            broadcastConnection(ws, msg);
          case 'draw':
             broadcastConnection(ws, msg);
+            break;
       }
    });
 });

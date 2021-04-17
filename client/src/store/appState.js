@@ -12,6 +12,7 @@ class App {
    }
 
    setSocket(socket) {
+      console.log(socket, 'setSocket');
       this.socket = socket;
    }
 }
