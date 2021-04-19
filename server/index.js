@@ -3,7 +3,13 @@ const express = require('express');
 const app = express();
 const WSserver = require('express-ws')(app);
 const aWss = WSserver.getWss();
+const cors = require('cors');
+const fs = require('fs');
+const path = require('path');
 require('dotenv').config();
+
+app.use(cors());
+app.use(express.json());
 
 const PORT = process.env.PORT || 5000;
 
@@ -20,6 +26,31 @@ const broadcastConnection = (ws, msg) => {
    });
 };
 
+app.post('/image', (req, res) => {
+   try {
+      const data = req.body.img.replace(`data:image/png;base64,`, '');
+      fs.writeFileSync(
+         path.resolve(__dirname, 'files', `${req.query.id}.jpg`),
+         data,
+         'base64',
+      );
+      return res.status(200).json({ message: 'Loaded' });
+   } catch (e) {
+      return res.status(500).json('error');
+   }
+});
+app.get('/image', (req, res) => {
+   try {
+      const file = fs.readFileSync(
+         path.resolve(__dirname, 'files', `${req.query.id}.jpg`),
+      );
+      const data = `data:image/png;base64,` + file.toString('base64');
+      res.json(data);
+   } catch (e) {
+      return res.status(500).json('error');
+   }
+});
+
 app.ws('/', (ws, req) => {
    ws.send('You have connected');
    ws.on('message', (msg) => {
@@ -29,7 +60,6 @@ app.ws('/', (ws, req) => {
             connectionHandler(ws, msg);
             break;
          case 'picture':
-            console.log('picture', msg);
             broadcastConnection(ws, msg);
          case 'draw':
             broadcastConnection(ws, msg);

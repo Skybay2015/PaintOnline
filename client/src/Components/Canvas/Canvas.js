@@ -10,6 +10,8 @@ import appState from '../../store/appState';
 import Rect from '../../tools/Rect';
 import Circle from '../../tools/Circle';
 import Line from '../../tools/Line';
+import axios from 'axios';
+import Eraser from '../../tools/Eraser';
 
 const Canvas = observer(() => {
    const { id } = useParams();
@@ -20,6 +22,26 @@ const Canvas = observer(() => {
 
    useEffect(() => {
       canvasState.setCanvas(canvasRef.current);
+      const ctx = canvasRef.current.getContext('2d');
+      axios.get(`http://localhost:5000/image?id=${id}`).then((respose) => {
+         const img = new Image();
+         img.src = respose.data;
+         img.onload = () => {
+            ctx.clearRect(
+               0,
+               0,
+               canvasRef.current.width,
+               canvasRef.current.height,
+            );
+            ctx.drawImage(
+               img,
+               0,
+               0,
+               canvasRef.current.width,
+               canvasRef.current.height,
+            );
+         };
+      });
    }, []);
 
    useEffect(() => {
@@ -39,7 +61,6 @@ const Canvas = observer(() => {
          };
          socket.onmessage = (event) => {
             let message = JSON.parse(event.data);
-            console.log(message.method);
             switch (message.method) {
                case 'connection':
                   console.log(`user ${message.username}`);
@@ -50,6 +71,8 @@ const Canvas = observer(() => {
                case 'draw':
                   drawHandler(message);
                   break;
+               default:
+                  return;
             }
          };
       }
@@ -122,7 +145,9 @@ const Canvas = observer(() => {
             returnMainSettings(mainColor, strokeColor, lineWidth);
             ctx.beginPath();
             break;
-
+         case 'eraser':
+            Eraser.draw(ctx, figure.x, figure.y, figure.lineWidth);
+            break;
          case 'line':
             Line.staticDraw(
                ctx,
@@ -140,11 +165,19 @@ const Canvas = observer(() => {
             ctx.beginPath();
             returnMainSettings(mainColor, strokeColor, lineWidth);
             break;
+         default:
+            return;
       }
    };
 
    const mouseDownHandler = () => {
       canvasState.pushToUndo(canvasRef.current.toDataURL());
+   };
+
+   const mouseUpHandler = () => {
+      axios.post(`http://localhost:5000/image?id=${id}`, {
+         img: canvasRef.current.toDataURL(),
+      });
    };
 
    const connectionHandler = () => {
@@ -161,6 +194,7 @@ const Canvas = observer(() => {
          />
          <canvas
             onMouseDown={mouseDownHandler}
+            onMouseUp={mouseUpHandler}
             ref={canvasRef}
             width={900}
             height={500}

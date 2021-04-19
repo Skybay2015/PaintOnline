@@ -15,6 +15,16 @@ const ToolBar = observer(() => {
       toolState.setStrokeColor(e.target.value);
    };
 
+   const download = () => {
+      const dataUrl = canvasState.canvas.toDataURL();
+      const a = document.createElement('a');
+      a.href = dataUrl;
+      a.download = 'Picture.jpg';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+   };
+
    return (
       <div className='toolbar'>
          <button
@@ -55,7 +65,15 @@ const ToolBar = observer(() => {
          />
          <button
             className='toolbar__btn eraser'
-            onClick={() => toolState.setTool(new Eraser(canvasState.canvas))}
+            onClick={() =>
+               toolState.setTool(
+                  new Eraser(
+                     canvasState.canvas,
+                     appState.socket,
+                     appState.sessionId,
+                  ),
+               )
+            }
          />
          <button
             className='toolbar__btn line'
@@ -82,7 +100,7 @@ const ToolBar = observer(() => {
                canvasState.redo(appState.socket, appState.sessionId)
             }
          />
-         <button className='toolbar__btn save' />
+         <button className='toolbar__btn save' onClick={download} />
       </div>
    );
 });

@@ -53,7 +53,6 @@ export default class Brush extends Tool {
    }
 
    static draw(ctx, x, y, color, lineWidth) {
-      console.log('draw', color);
       ctx.strokeStyle = color;
       ctx.lineWidth = lineWidth;
       ctx.lineTo(x, y);
