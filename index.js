@@ -8,10 +8,35 @@ const fs = require('fs');
 const path = require('path');
 require('dotenv').config();
 
-app.use(cors());
 app.use(express.json());
 
 const PORT = process.env.PORT || 5000;
+
+const whitelist = ['http://localhost:3000'​, 'http://localhost:8080'​, 'https://desolate-mesa-61830.herokuapp.com'​]
+const corsOptions = {
+  origin: function (origin, callback) {
+    console.log("** Origin of request " + origin)
+    if (whitelist.indexOf(origin) !== -1 || !origin) {
+      console.log("Origin acceptable")
+      callback(null, true)
+    } else {
+      console.log("Origin rejected")
+      callback(new Error('Not allowed by CORS'))
+    }
+  }
+}
+app.use(cors(corsOptions))
+
+if (process.env.NODE_ENV === 'production') {
+   // Serve any static files
+   app.use(express.static(path.join(__dirname, 'client/build')));
+ // Handle React routing, return all requests to React app
+   app.get('*', function(req, res) {
+     res.sendFile(path.join(__dirname, 'client/build', 'index.html'));
+   });
+ }
+
+
 
 const connectionHandler = (ws, msg) => {
    ws.id = msg.id;
@@ -67,5 +92,7 @@ app.ws('/', (ws, req) => {
       }
    });
 });
+
+
 
 app.listen(PORT, () => console.log(`server started on PORT ${PORT}`));
